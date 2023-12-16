@@ -6,12 +6,21 @@ console.info("Info");
 
 console.error("ERROR");
 
-console.log(1);
-console.log(true);
-console.log(null);
-console.log(undefined);
-console.log([1,2,3,4,5]);
-console.log({
-    nombre: "Juan",
-    apellido: "Ronquillo"
-});
+var personas = [
+{
+    name: "Juan",
+    edad: 21,
+    pelicula: "Señor de los Anillos",
+    salario: 1000,
+    fecha: new Date()
+},
+{ name: "Nico", edad: 23, pelicula: "Harry Potter", salario: 100 },
+{ name: "Lucas", edad: 25, pelicula: "Harry Potter 3", salario: 150 },
+{ name: "Luis", edad: 30, pelicula: "Indiana Jones", salario: 4500 },
+];
+
+console.table(personas)
+console.table(personas[2]);
+
+console.log("File: index.js - personas", personas[2].name);
+// console.table("File: index.js - personas", personas[2].name);
