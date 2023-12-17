@@ -30,3 +30,4 @@ console.log(Object.keys(personas));
 console.log(Object.keys(personas).length);
 console.log(Object.values(personas));
 console.log(Object.entries(personas));
+console.log(Object.entries(personas));
