@@ -1,15 +1,33 @@
+async function sumar(param1, param2) {
+    return new Promise((resolve, reject) => {
+        if (typeof param1 !== "number" || typeof param2 !== "number") {
+            reject("El param1 o el param2 no son números")
+        }
+
+        resolve(param1 + param2)
+    })
+}
 
 //TODO: Convertir esta función a promesa
-const sumar = (param1, param2) => param1 + param2
+async function restar(param1, param2) {
+    return new Promise((resolve, reject) => {
+        if (typeof param1 !== "number" || typeof param2 !== "number") {
+            reject("El param1 o el param2 no son números")
+        }
+
+        resolve(param1 - param2)
+    })
+}
 
 //TODO: Convertir esta función a promesa
-const restar = (param1, param2) => {
-    return param1 - param2
-} 
+async function multiplicar(param1, param2) {
+    return new Promise((resolve, reject) => {
+        if (typeof param1 !== "number" || typeof param2 !== "number") {
+            reject("El param1 o el param2 no son números")
+        }
 
-//TODO: Convertir esta función a promesa
-function multiplicar(param1, param2) {
-    return param1 * param2;
+        resolve(param1 * param2)
+    })
 }
 
 //TODO: Convertir esta función a promesa
@@ -46,9 +64,31 @@ dividir(20,10).then((resultado) => {
     console.log(error);
 })
 
-dividir(12,0).then((resultado) => {
+sumar(20,10).then((resultado) => {
     console.log(resultado);
 }).catch((error) => {
     console.log(error);
 })
+
+restar(20,10).then((resultado) => {
+    console.log(resultado);
+}).catch((error) => {
+    console.log(error);
+})
+
+multiplicar(20,10).then((resultado) => {
+    console.log(resultado);
+}).catch((error) => {
+    console.log(error);
+})
+
+
+await dividir(20,2)
+
+
+// dividir(12,0).then((resultado) => {
+//     console.log(resultado);
+// }).catch((error) => {
+//     console.log(error);
+// })
 
