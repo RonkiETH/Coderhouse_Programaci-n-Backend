@@ -1,0 +1,13 @@
+{
+  "name": "number_generator_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "randomGenerator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node randomGenerator.js"
+  },
+  "keywords": [],
+  "author": "Juan Ignacio",
+  "license": "ISC"
+}
