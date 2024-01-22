@@ -1,37 +1,58 @@
-const { 
-    findAvailableId,
-} = require('../helpers/products.helpers');
+const fs = require('fs/promises');
+const path = require('path');
+const { readData } = require('../middlewares/readFiles.middleware');
 
-const controller = {};
+const filePath = path.resolve(__dirname, '../products.json');
+let products;
 
-controller.getProducts = async (req, res, products) => {
+async function readProducts(req, res, next) {
+    try {
+        products = await readData(filePath);
+        next();
+    } catch (error) {
+        res.status(500).json({ 
+            ok: false, 
+            message: 'Error interno del servidor' 
+        });
+    }
+}
+
+const findAvailableId = (products) => {
+    const usedIds = new Set(products.map(product => product.id));
+    let id = 1;
+
+    while (usedIds.has(id)) {
+        id++;
+    }
+
+    return id;
+}
+
+async function getProducts(req, res) {
+
     const { limit } = req.query;
 
     if (!limit) {
-        return { 
-            ok: true, 
-            products 
-        };
+        res.status(200).json({ ok: true, products });
+        return;
     }
 
-    if (isNaN(limit)) {
-        return {
+    const limitNumber = Number(limit);
+
+    if (isNaN(limitNumber) || !Number.isInteger(limitNumber)) {
+        res.status(401).json({
             ok: false,
-            response: res.status(401).json({
-                ok: false,
-                message: 'Error del lado del cliente',
-            }),
-        };
+            message: 'El limit para ver la cantidad de usuarios debe ser un número entero'
+        });
+        return;
     }
 
-    if (limit <= 0 || limit > products.length) {
-        return {
+    if (limitNumber <= 0 || limitNumber > products.length) {
+        res.status(400).json({
             ok: false,
-            response: res.status(400).json({
-                ok: false,
-                message: 'Ingresaste 0 o más productos de los que realmente hay',
-            }),
-        };
+            message: 'Ingresaste 0 o más productos de los que realmente hay',
+        });
+        return;
     }
 
     const productsLimit = products.filter(product => product.id <= limit)
@@ -39,248 +60,217 @@ controller.getProducts = async (req, res, products) => {
     return res.status(200).json({
         products: productsLimit,
     });
-};
+}
 
-controller.getProductById = async (req, res, products) => {
-    const { pid } = req.params;
-
-    if (isNaN(pid)) {
-        return {
-            ok: false,
-            response: res.status(401).json({
-                ok: false,
-                message: 'El ID para buscar el producto debe ser un número',
-            }),
-        };
-    }
-
-    if (pid <= 0 || pid > products.length) {
-        return {
-            ok: false,
-            response: res.status(400).json({
-                ok: false,
-                message: 'El producto que estás buscando no existe',
-            }),
-        };
-    }
-
-    return res.status(200).json({
-        products: products.filter(product => product.id === parseInt(pid)),
-    });
-};
-
-controller.addProduct = async (req, res, products) => {
-    const { 
-        title, 
-        description, 
-        code, 
-        price, 
-        status = true, 
-        stock, 
-        category,
-        thumbnails
-    } = req.body;
-
-    if (!title || !description || !code || !price || !stock || !category) {
-        return {
-            ok: false,
-            message: 'Todos los campos son obligatorios, excepto "thumbnails"',
-        };
-    }
-
-    if (
-        typeof title !== 'string' ||
-        typeof description !== 'string' ||
-        typeof code !== 'string' ||
-        typeof price !== 'number' ||
-        typeof stock !== 'number' ||
-        typeof category !== 'string' ||
-        !Array.isArray(thumbnails) ||
-        !thumbnails.every(item => typeof item === 'string')
-    ) {
-        return {
-            ok: false,
-            message: 'Tipos de datos inválidos en los campos',
-        };
-    }
-
-    const lastId = findAvailableId(products);
-
-    const newProduct = {
-        id: lastId,
-        title,
-        description,
-        code,
-        price,
-        status,
-        stock,
-        category,
-        thumbnails
-    };
-
-    products.push(newProduct);
-
+async function getProductById(req, res) {
     try {
-        await fs.writeFile('../products.json', JSON.stringify(products));
-        return {
-            ok: true,
-            response: res.status(200).json({
-                ok: true,
-                product: newProduct,
-                message: "Producto agregado con éxito"
-            }),
-        };
+        const { pid } = req.params;
+        const productId = parseInt(pid);
+
+        if (isNaN(productId) || productId <= 0) {
+            return res.status(400).json({
+                ok: false,
+                message: 'El ID para buscar el producto debe ser un número positivo',
+            });
+        }
+
+        const product = products.find(product => product.id === productId);
+
+        if (!product) {
+            return res.status(404).json({
+                ok: false,
+                message: 'El producto que estás buscando no fue encontrado',
+            });
+        }
+
+        return res.status(200).json({
+            product: product,
+        });
     } catch (error) {
-        return {
+        return res.status(500).json({
             ok: false,
-            response: res.status(500).json({
-                ok: false,
-                message: 'Error al agregar el producto',
-            }),
-        };
-    }
-};
-
-controller.updateProduct = async (req, res, products) => {
-    const { pid } = req.params;
-
-    if (isNaN(pid)) {
-        return {
-            ok: false,
-            response: res.status(401).json({
-                ok: false,
-                message: 'El ID para buscar el producto debe ser un número',
-            }),
-        };
-    }
-
-    if (pid <= 0 || pid > products.length) {
-        return {
-            ok: false,
-            response: res.status(400).json({
-                ok: false,
-                message: 'El producto que estás buscando no existe',
-            }),
-        };
-    }
-
-    const existingProductIndex = productsFilter.findIndex((product) => product.id === parseInt(pid));
-
-    if (existingProductIndex === -1) {
-        return res.status(400).json({
-            ok: false,
-            message: 'El producto que estás buscando no existe',
+            message: 'Error interno del servidor',
         });
     }
+}
 
-    // Obtén el producto existente
-    const existingProduct = productsFilter[existingProductIndex];
+async function addProduct(req, res) {
+    try {
+        const {
+            title,
+            description,
+            code,
+            price,
+            status = true,
+            stock,
+            category,
+            thumbnails
+        } = req.body;
 
-    // Actualiza el producto con los campos proporcionados en el body
-    const updatedProduct = {
-        ...existingProduct,
-        ...req.body,
-    };
+        if (!title || !description || !code || !price || !stock || !category) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Todos los campos son obligatorios, excepto "thumbnails"',
+            });
+        }
 
-    // Realiza las validaciones de tipo de datos
-    if (typeof updatedProduct.title !== 'undefined' && typeof updatedProduct.title !== 'string' ||
-        typeof updatedProduct.description !== 'undefined' && typeof updatedProduct.description !== 'string' ||
-        typeof updatedProduct.code !== 'undefined' && typeof updatedProduct.code !== 'string' ||
-        typeof updatedProduct.price !== 'undefined' && typeof updatedProduct.price !== 'number' ||
-        typeof updatedProduct.status !== 'undefined' && typeof updatedProduct.status !== 'boolean' ||
-        typeof updatedProduct.stock !== 'undefined' && typeof updatedProduct.stock !== 'number' ||
-        typeof updatedProduct.category !== 'undefined' && typeof updatedProduct.category !== 'string' ||
-        typeof updatedProduct.thumbnails !== 'undefined' && (!Array.isArray(updatedProduct.thumbnails) || !updatedProduct.thumbnails.every(item => typeof item === 'string'))) {
-        return res.status(400).json({
+        if (
+            typeof title !== 'string' ||
+            typeof description !== 'string' ||
+            typeof code !== 'string' ||
+            typeof price !== 'number' ||
+            typeof stock !== 'number' ||
+            typeof category !== 'string' ||
+            !Array.isArray(thumbnails) ||
+            !thumbnails.every(item => typeof item === 'string')
+        ) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Tipos de datos inválidos en los campos',
+            });
+        }
+
+        const lastId = findAvailableId(products);
+
+        const newProduct = {
+            id: lastId,
+            title,
+            description,
+            code,
+            price,
+            status,
+            stock,
+            category,
+            thumbnails
+        };
+
+        products.push(newProduct);
+
+        products.sort((a, b) => a.id - b.id);
+        await fs.writeFile(filePath, JSON.stringify(products));
+
+        return res.status(200).json({
+            ok: true,
+            product: newProduct,
+            message: "Producto agregado con éxito"
+        });
+    } catch (error) {
+        return res.status(500).json({
             ok: false,
-            message: 'Tipos de datos inválidos en los campos actualizados',
+            message: 'Error al agregar el producto',
         });
     }
+}
 
-    // Actualiza el producto en la lista
-    products[existingProductIndex] = updatedProduct;
-
-    // Guarda la lista actualizada de productos en el archivo
+async function updateProduct(req, res) {
     try {
-        await fs.writeFile('../products.json', JSON.stringify(products));
-        return {
-            ok: true,
-            response: res.status(200).json({
-                ok: true,
-                product: updatedProduct,
-                message: "Producto actualizado con éxito"
-            }),
-        };
-    } catch (error) {
-        return {
-            ok: false,
-            response: res.status(500).json({
+        const { pid } = req.params;
+        const productId = parseInt(pid);
+
+        if (isNaN(productId) || productId <= 0) {
+            return res.status(400).json({
                 ok: false,
-                message: 'Error al actualizar el producto',
-            }),
-        };
-    }
-};
+                message: 'El ID para buscar el producto debe ser un número positivo',
+            });
+        }
 
-controller.deleteProduct = async (req, res, products) => {
-    const { pid } = req.params;
+        const existingProductIndex = products.findIndex((product) => product.id === productId);
 
-    if (isNaN(pid)) {
-        return {
-            ok: false,
-            response: res.status(401).json({
-                ok: false,
-                message: 'El ID para buscar el producto debe ser un número',
-            }),
-        };
-    }
-
-    if (pid <= 0 || pid > products.length) {
-        return {
-            ok: false,
-            response: res.status(400).json({
+        if (existingProductIndex === -1) {
+            return res.status(400).json({
                 ok: false,
                 message: 'El producto que estás buscando no existe',
-            }),
+            });
+        }
+
+        // Obtén el producto existente
+        const existingProduct = products[existingProductIndex];
+
+        const updatedProduct = {
+            ...existingProduct,
+            ...req.body,
         };
-    }
 
-    const existingProductIndex = products.findIndex((product) => product.id === parseInt(pid));
+        if (typeof updatedProduct.title !== 'undefined' && typeof updatedProduct.title !== 'string' ||
+            typeof updatedProduct.description !== 'undefined' && typeof updatedProduct.description !== 'string' ||
+            typeof updatedProduct.code !== 'undefined' && typeof updatedProduct.code !== 'string' ||
+            typeof updatedProduct.price !== 'undefined' && typeof updatedProduct.price !== 'number' ||
+            typeof updatedProduct.status !== 'undefined' && typeof updatedProduct.status !== 'boolean' ||
+            typeof updatedProduct.stock !== 'undefined' && typeof updatedProduct.stock !== 'number' ||
+            typeof updatedProduct.category !== 'undefined' && typeof updatedProduct.category !== 'string' ||
+            typeof updatedProduct.thumbnails !== 'undefined' && (!Array.isArray(updatedProduct.thumbnails) || !updatedProduct.thumbnails.every(item => typeof item === 'string'))) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Tipos de datos inválidos en los campos actualizados',
+            });
+        }
 
-    if (existingProductIndex === -1) {
-        return res.status(400).json({
+        products[existingProductIndex] = updatedProduct;
+
+        products.sort((a, b) => a.id - b.id);
+        await fs.writeFile(filePath, JSON.stringify(products));
+
+        return res.status(200).json({
+            ok: true,
+            product: updatedProduct,
+            message: "Producto actualizado con éxito"
+        });
+    } catch (error) {
+        return res.status(500).json({
             ok: false,
-            message: 'El producto que estás buscando no existe',
+            message: 'Error al actualizar el producto',
         });
     }
+}
 
+async function deleteProduct(req, res) {
     try {
-    // Obtén el producto existente
-    const existingProduct = products[existingProductIndex];
+        const { pid } = req.params;
+        const productId = parseInt(pid);
 
-    // Elimina el producto de la lista
-    products.splice(existingProductIndex, 1);
-
-    // Guarda la lista actualizada de productos en el archivo
-    
-    await fs.writeFile('../products.json', JSON.stringify(products));
-        return {
-            ok: true,
-            response: res.status(200).json({
-                ok: true,
-                product: existingProduct,
-                message: "Producto eliminado con éxito"
-            }),
-        };
-    } catch (error) {
-        return {
-            ok: false,
-            response: res.status(500).json({
+        if (isNaN(productId) || productId <= 0) {
+            return res.status(400).json({
                 ok: false,
-                message: 'Error al eliminar el producto',
-            }),
-        };
-    }
-};
+                message: 'El ID para buscar el producto debe ser un número positivo',
+            });
+        }
 
-module.exports = controller;
+        const existingProductIndex = products.findIndex((product) => product.id === productId);
+
+        if (existingProductIndex === -1) {
+            return res.status(400).json({
+                ok: false,
+                message: 'El producto que estás buscando no existe',
+            });
+        }
+
+        // Obtén el producto existente
+        const existingProduct = products[existingProductIndex];
+
+        // Elimina el producto de la lista
+        products.splice(existingProductIndex, 1);
+
+        products.sort((a, b) => a.id - b.id);
+        await fs.writeFile(filePath, JSON.stringify(products));
+
+        return res.status(200).json({
+            ok: true,
+            product: existingProduct,
+            message: "Producto eliminado con éxito"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            ok: false,
+            message: 'Error al eliminar el producto',
+        });
+    }
+}
+
+module.exports = {
+    readProducts,
+    getProducts,
+    getProductById,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+};
