@@ -1,6 +1,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { readData } = require('../middlewares/readFiles.middleware');
+const { validateDataTypes, findAvailableId, getProductsValidations, validateProductID } = require('../common/common');
 
 const filePath = path.resolve(__dirname, '../products.json');
 let products;
@@ -12,55 +13,26 @@ async function readProducts(req, res, next) {
     } catch (error) {
         res.status(500).json({ 
             ok: false, 
-            message: 'Error interno del servidor' 
+            message: 'Error al intentar leer el archivo de productos' 
         });
     }
-}
-
-const findAvailableId = (products) => {
-    const usedIds = new Set(products.map(product => product.id));
-    let id = 1;
-
-    while (usedIds.has(id)) {
-        id++;
-    }
-
-    return id;
 }
 
 async function getProducts(req, res) {
-
     const { limit } = req.query;
-
-    if (!limit) {
-        res.status(200).json({ ok: true, products });
-        return;
-    }
-
     const limitNumber = Number(limit);
 
-    if (isNaN(limitNumber) || !Number.isInteger(limitNumber)) {
-        res.status(401).json({
-            ok: false,
-            message: 'El limit para ver la cantidad de usuarios debe ser un número entero'
-        });
-        return;
-    }
+    const validationResult = getProductsValidations(res,limit, products, limitNumber);
 
-    if (limitNumber <= 0 || limitNumber > products.length) {
-        res.status(400).json({
-            ok: false,
-            message: 'Ingresaste 0 o más productos de los que realmente hay',
-        });
-        return;
-    }
+    if (validationResult) return res.status(validationResult.status).json(validationResult.response);
+    
 
     const productsLimit = products.filter(product => product.id <= limit)
 
     return res.status(200).json({
         products: productsLimit,
     });
-}
+} 
 
 async function getProductById(req, res) {
     try {
@@ -86,6 +58,7 @@ async function getProductById(req, res) {
         return res.status(200).json({
             product: product,
         });
+
     } catch (error) {
         return res.status(500).json({
             ok: false,
@@ -107,28 +80,7 @@ async function addProduct(req, res) {
             thumbnails
         } = req.body;
 
-        if (!title || !description || !code || !price || !stock || !category) {
-            return res.status(400).json({
-                ok: false,
-                message: 'Todos los campos son obligatorios, excepto "thumbnails"',
-            });
-        }
-
-        if (
-            typeof title !== 'string' ||
-            typeof description !== 'string' ||
-            typeof code !== 'string' ||
-            typeof price !== 'number' ||
-            typeof stock !== 'number' ||
-            typeof category !== 'string' ||
-            !Array.isArray(thumbnails) ||
-            !thumbnails.every(item => typeof item === 'string')
-        ) {
-            return res.status(400).json({
-                ok: false,
-                message: 'Tipos de datos inválidos en los campos',
-            });
-        }
+        validateDataTypes(res, title, description, code, price, stock, category, thumbnails)
 
         const lastId = findAvailableId(products);
 

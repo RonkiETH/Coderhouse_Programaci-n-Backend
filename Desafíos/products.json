@@ -1,1 +1,16 @@
-[{"id":1,"title":"Producto 1","description":"Descripción","code":"Code123","price":2,"status":true,"stock":3,"category":"asdasd","thumbnails":["asdasd","asdasdasd"]}]
+[
+    {
+        "id": 1,
+        "title": "Producto 1",
+        "description": "Descripción",
+        "code": "Code123",
+        "price": 2,
+        "status": true,
+        "stock": 3,
+        "category": "asdasd",
+        "thumbnails": [
+            "asdasd",
+            "asdasdasd"
+        ]
+    }
+]
