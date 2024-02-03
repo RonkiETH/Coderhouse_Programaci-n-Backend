@@ -2,10 +2,9 @@ const socket = io();
 
 socket.emit("message", "Cliente conectado")
 
-  // Escucha el evento 'products' y actualiza la lista de productos
   socket.on('products', (data) => {
     const productList = document.getElementById('productList');
-    productList.innerHTML = ''; // Limpiar la lista
+    productList.innerHTML = ''; 
 
     data.products.forEach((product) => {
       const li = document.createElement('li');
@@ -25,7 +24,7 @@ socket.emit("message", "Cliente conectado")
   });
 
   document.getElementById('addProduct').addEventListener('submit', (event) => {
-    // event.preventDefault();
+    event.preventDefault();
   
     const title = document.getElementById('title').value,
       description = document.getElementById('description').value,

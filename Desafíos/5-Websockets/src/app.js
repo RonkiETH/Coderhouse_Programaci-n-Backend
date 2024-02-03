@@ -50,9 +50,8 @@ httpServer.listen(PORT, () => {
     });
 
     socket.on('deleteProduct', (id) => {
-        const productId = parseInt(id, 10); // Convertir a número base 10
+        const productId = parseInt(id, 10);
     
-        // Validar que el ID sea un número válido
         if (!isNaN(productId)) {
             const index = products.findIndex((product) => product.id === productId);
             
