@@ -1,33 +1,31 @@
-import express from 'express';
-import usersRoutes from './routes/users.routes.js';
-import mongoose from 'mongoose';
+const express = require("express");
+const mongoose = require("mongoose");
+const studentsRoutes = require("./routes/students.routes");
 
 const app = express();
+const PORT = 5000;
 const API_PREFIX = "api";
-const PORT = 8080;
 const DB_HOST = "localhost";
 const DB_PORT = 27017;
-const DB_NAME = "mongoUserDB"
+const DB_NAME = "mongoStudentDB";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.set('strictQuery', false);
+app.use(`/static`, express.static(__dirname + "/public"));
 
-const conecction = mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`)
-.then((conn) => {
-    console.log('Connected to MongoDB', conn);
-})
-.catch((err) => {
-    console.log('Error connecting to MongoDB', err);
-});
-
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-app.use(`/${API_PREFIX}/users`, usersRoutes);
+const connection = mongoose
+  .connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`)
+  .then((conn) => {
+    console.log("🚀 ~ file: app.js:20 ~ CONNECTED TO MONGO, WELCOME!!!");
+  })
+  .catch((err) => {
+    console.log("🚀 ~ file: app.js:22 ~ .then ~ ERROR CONNECTION!!!", err);
+  });
+// USERS ROUTES
+// /api/students
+app.use(`/${API_PREFIX}/students`, studentsRoutes);
 
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+  console.log(`UP AND RUNNING ON PORT: ${PORT}`);
 });

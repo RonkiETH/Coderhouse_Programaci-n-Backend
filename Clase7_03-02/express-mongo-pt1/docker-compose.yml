@@ -1,18 +1,18 @@
-version: 'version 1.0.0'
+version: "3.0"
 
 services:
   mongo:
-    image: mongo:latest
+    image: mongo
     container_name: mongo_db
     ports:
-      - "27017:27017"
+      - 27017:27017
     volumes:
       - mongo:/data/configdb
       - mongo:/data/db
 
 networks:
   nodejs-network:
-    name: "nodejs-network"
+    name: nodejs-network
     driver: bridge
 
 volumes:
