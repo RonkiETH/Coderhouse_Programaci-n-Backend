@@ -1,0 +1,19 @@
+<div>
+    <h1>Usando las cookies</h1>
+    <div>
+        <form action="/api/cookies/setCookie" method="POST">
+            <label for="name">Nombre del cliente</label>
+            <input type="text" name="name" placeholder="Introduce tu nombre">
+            <label for="email">Email del cliente</label>
+            <input type="email" name="email" id="email">
+            <input type="submit" value="Enviar">
+        </form>
+    </div>
+
+    <div>
+        <h3>Info de la cookie</h3>
+        <form action="/api/cookies/" method="GET">
+            <button type="submit">GetCookie</button>
+        </form>
+    </div>
+</div>
