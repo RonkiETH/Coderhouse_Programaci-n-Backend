@@ -5,7 +5,7 @@ const router = Router();
 router.get("/login", async (req, res) => {
     const { username, password } = req.body;
 
-    if (username !== "Ronki" || password !== "123456") {
+    if (username !== "Ronki" && password !== "123456") {
         return res.json({ message: "Login fallido" })
     }
 

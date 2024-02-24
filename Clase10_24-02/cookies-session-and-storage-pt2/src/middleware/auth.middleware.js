@@ -1,5 +1,5 @@
 function AuthMiddleware(req, res, next) {
-    if (req.session?.user === "Ronki" && req.session.admin) {
+    if (req.session?.user === "Ronki" || req.session.admin) {
         return next();
     }
 
