@@ -1,0 +1,16 @@
+{{!-- Página de Detalles del Carrito --}}
+
+<h1>{{ title }}</h1>
+<ul>
+  {{#each cart.products}}
+  <li class="cart-item">
+    <h2>{{ product.title }}</h2>
+    <p>Descripción: {{ product.description }}</p>
+    <p>Categoría:{{ product.category }}</p>
+    <p>Precio: ${{ product.price }}</p>
+  </li>
+  {{/each}}
+</ul>
+
+
+

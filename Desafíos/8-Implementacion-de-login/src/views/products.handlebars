@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+</head>
+<body>
+    <h1>{{title}}</h1>
+    <h2>Bienvenido {{user.firstName}} {{user.lastName}}</h2>
+    <h4>({{#if user.isAdmin}}Admin{{else}}Usuario{{/if}})</h4>
+    <button>
+        <a href="/api/session/profile">Perfil</a>
+    </button>
+    <button>
+        <a href="/api/session/logout">Logout</a>
+    </button>
+    <ul>
+    {{#each products}}
+    <li>
+        <h2>Título: {{this.title}}</h2>
+        <p>Descripción: {{this.description}}</p>
+        <p>Precio: {{this.price}}</p>
+        <p>Categoría: {{this.category}}</p>
+        <a href="/api/products/{{this._id}}">Ver detalles</a>
+        <button>Agregar al carrito</button>
+    </li>
+    {{/each}}
+</ul>
+    {{#if hasPrevPage}}
+    <a href="{{prevLink}}">Página anterior</a>
+    {{/if}}
+    {{#if hasNextPage}}
+    <a href="{{nextLink}}">Página siguiente</a>
+    {{/if}}
+</body>
+</html>
