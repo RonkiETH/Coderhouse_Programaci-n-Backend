@@ -1,0 +1,15 @@
+<!-- profile.handlebars -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+</head>
+<body>
+    <h1>{{title}}</h1>
+    <h2>Bienvenido {{user.firstName}} {{user.lastName}}</h2>
+    <p>Rol: {{#if user.isAdmin}}Admin{{else}}Usuario{{/if}}</p>
+    
+    <a href="/api/session/logout">Logout</a>
+</body>
+</html>
